@@ -1,0 +1,17 @@
+{
+  "name": "tikz-skills",
+  "owner": { "name": "Charles Ji" },
+  "metadata": {
+    "description": "TikZ skills for explaining deep-learning ideas visually."
+  },
+  "plugins": [
+    {
+      "name": "tikz-skills",
+      "source": "./",
+      "description": "Static TikZ figures, interactive TikZ figures and illustrated explorer books for deep-learning concepts, in one shared visual language.",
+      "version": "1.0.0",
+      "category": "education",
+      "keywords": ["tikz", "latex", "deep-learning", "visualization"]
+    }
+  ]
+}

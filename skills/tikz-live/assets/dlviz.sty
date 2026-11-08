@@ -1,0 +1,188 @@
+% dlviz.sty -- a small TikZ/pgfplots style sheet for explaining deep-learning
+% concepts visually. Palette and element vocabulary follow A. Canziani's
+% NYU Deep Learning book (ColorBrewer Set3 on a dark grey page).
+%
+% Usage:  \documentclass[tikz,border=8pt]{standalone}
+%         \usepackage[dark]{dlviz}   % or [light] for white backgrounds
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{dlviz}[2026/10/20 deep-learning explainer figures]
+
+\RequirePackage{etoolbox}
+\newif\ifdlviz@dark \dlviz@darktrue
+\DeclareOption{dark}{\dlviz@darktrue}
+\DeclareOption{light}{\dlviz@darkfalse}
+\ProcessOptions\relax
+
+\RequirePackage{amsmath,amssymb,bm}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\RequirePackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,graphs,quotes,
+  shapes.misc,shapes.geometric,decorations.pathreplacing,matrix,math}
+\usepgfplotslibrary{fillbetween,groupplots}
+
+%% ---------------------------------------------------------------- palette --
+% Dark theme: ColorBrewer Set3, exactly as in the book.
+% Light theme: hand-darkened versions with the same hue, so meaning is kept.
+\ifdlviz@dark
+  \definecolor{dlbg}{HTML}{404040}  \definecolor{dlfg}{HTML}{FFFFFF}
+  \definecolor{dlmuted}{HTML}{A6A6A6}
+  \definecolor{coloraqua}{HTML}{8DD3C7}     \definecolor{coloryellow}{HTML}{FFFFB3}
+  \definecolor{colorlavender}{HTML}{BEBADA} \definecolor{colorred}{HTML}{FB8072}
+  \definecolor{colorblue}{HTML}{80B1D3}     \definecolor{colororange}{HTML}{FDB462}
+  \definecolor{colorgreen}{HTML}{B3DE69}    \definecolor{colorpink}{HTML}{FCCDE5}
+  \definecolor{colorgray}{HTML}{D9D9D9}     \definecolor{colorviolet}{HTML}{BC80BD}
+  \definecolor{colormint}{HTML}{CCEBC5}     \definecolor{colorgold}{HTML}{FFED6F}
+\else
+  \definecolor{dlbg}{HTML}{FFFFFF}  \definecolor{dlfg}{HTML}{1F1F1F}
+  \definecolor{dlmuted}{HTML}{8A8A8A}
+  \definecolor{coloraqua}{HTML}{2A9D8F}     \definecolor{coloryellow}{HTML}{C9A100}
+  \definecolor{colorlavender}{HTML}{7468B0} \definecolor{colorred}{HTML}{E0533F}
+  \definecolor{colorblue}{HTML}{3A7DB5}     \definecolor{colororange}{HTML}{E8862A}
+  \definecolor{colorgreen}{HTML}{5E9A1E}    \definecolor{colorpink}{HTML}{D45D99}
+  \definecolor{colorgray}{HTML}{7F7F7F}     \definecolor{colorviolet}{HTML}{944A95}
+  \definecolor{colormint}{HTML}{4DA05A}     \definecolor{colorgold}{HTML}{B58900}
+\fi
+% grid / faint structure lines: fg blended into bg
+\colorlet{dlgrid}{dlfg!22!dlbg}
+\colorlet{dlfaint}{dlfg!45!dlbg}
+
+\pagecolor{dlbg}
+\AtBeginDocument{\color{dlfg}}
+
+%% ------------------------------------------------------ coloured-text macros --
+\newcommand{\aqua}[1]{\textcolor{coloraqua}{#1}}
+\newcommand{\yellow}[1]{\textcolor{coloryellow}{#1}}
+\newcommand{\lavender}[1]{\textcolor{colorlavender}{#1}}
+\newcommand{\red}[1]{\textcolor{colorred}{#1}}
+\newcommand{\blue}[1]{\textcolor{colorblue}{#1}}
+\newcommand{\orange}[1]{\textcolor{colororange}{#1}}
+\newcommand{\green}[1]{\textcolor{colorgreen}{#1}}
+\newcommand{\pink}[1]{\textcolor{colorpink}{#1}}
+\newcommand{\gray}[1]{\textcolor{colorgray}{#1}}
+\newcommand{\violet}[1]{\textcolor{colorviolet}{#1}}
+\newcommand{\mint}[1]{\textcolor{colormint}{#1}}
+\newcommand{\gold}[1]{\textcolor{colorgold}{#1}}
+\newcommand{\muted}[1]{\textcolor{dlmuted}{#1}}
+
+%% ----------------------------------------------------------------- notation --
+% Bold lowercase = vector, bold uppercase = matrix, plain = scalar.
+\newcommand{\vx}{\bm{x}}  \newcommand{\vy}{\bm{y}}  \newcommand{\vh}{\bm{h}}
+\newcommand{\vz}{\bm{z}}  \newcommand{\vq}{\bm{q}}  \newcommand{\vk}{\bm{k}}
+\newcommand{\vv}{\bm{v}}  \newcommand{\va}{\bm{a}}  \newcommand{\vs}{\bm{s}}
+\newcommand{\vb}{\bm{b}}  \newcommand{\vw}{\bm{w}}  \newcommand{\ve}{\bm{e}}
+\newcommand{\vytld}{\tilde{\bm{y}}}
+\newcommand{\vxhat}{\hat{\bm{x}}}
+\newcommand{\mW}{\bm{W}}  \newcommand{\mQ}{\bm{Q}}  \newcommand{\mK}{\bm{K}}
+\newcommand{\mV}{\bm{V}}  \newcommand{\mA}{\bm{A}}  \newcommand{\mX}{\bm{X}}
+\newcommand{\mH}{\bm{H}}  \newcommand{\mI}{\bm{I}}
+\newcommand{\vtheta}{\bm{\theta}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\providecommand{\KL}{\mathrm{KL}}           % KL divergence (matches the explorer book's MathJax macro)
+\DeclareMathOperator{\softmax}{softmax}
+\newcommand{\cC}{\red{C}}                          % coloured cost
+\newcommand{\cF}{\red{F}}                          % coloured free energy
+\newcommand{\cL}{\red{\mathcal{L}}}                % coloured loss
+\newcommand{\Cyy}{\cC(\violet{\vytld},\blue{\vy})}
+
+%% --------------------------------------------------------- element styles --
+\tikzset{
+  >={Latex[length=2.2mm,width=1.6mm]},
+  every picture/.append style={line cap=round, line join=round,
+    font=\normalsize, text=dlfg, draw=dlfg},
+  % --- graph vocabulary (book Appendix A.2) ---------------------------------
+  neuron/.style={draw, circle, very thick, minimum size=7.5mm,
+    inner sep=0, outer sep=0},
+  vx/.style   ={neuron, draw=colorpink,   node contents={\(\vx\)}},
+  vh/.style   ={neuron, draw=colorgreen,  node contents={\(\vh\)}},
+  vytld/.style={neuron, draw=colorviolet, node contents={\(\vytld\)}},
+  vy/.style   ={neuron, draw=colorblue,   node contents={\(\vy\)}},
+  vz/.style   ={neuron, draw=colororange, node contents={\(\vz\)}},
+  % observed variables may be shaded, latents left hollow
+  observed/.style={fill=#1!25!dlbg}, observed/.default=dlfaint,
+  bullet/.style={draw, rounded rectangle, rounded rectangle west arc=none,
+    very thick, minimum height=7.5mm, minimum width=15mm,
+    inner sep=0, outer sep=0},
+  Pred/.style={bullet, draw=coloryellow,   node contents={Pred}},
+  Dec/.style ={bullet, draw=coloraqua,     node contents={Dec}},
+  Enc/.style ={bullet, draw=colorlavender, node contents={Enc}},
+  % generic deterministic module with a custom colour: [module=coloraqua]
+  module/.style={bullet, draw=#1}, module/.default=dlfg,
+  cost/.style={draw=colorred, rectangle, very thick, minimum size=7.5mm,
+    inner sep=0, outer sep=0},
+  cC/.style={cost, node contents={\(\cC\)}},
+  system energy/.style={colorred, dashed, very thick},
+  % --- layer / block diagrams ----------------------------------------------
+  block/.style={draw=#1, very thick, rounded corners=2pt, minimum height=7.5mm,
+    minimum width=15mm, inner xsep=6pt, align=center, fill=#1!12!dlbg},
+  block/.default=dlfg,
+  op/.style={draw=dlfg, thick, circle, inner sep=0, minimum size=5mm,
+    font=\small},                                  % (+), (x), sigma ...
+  group/.style={draw=dlfaint, dashed, rounded corners=4pt, inner sep=6pt},
+  % --- edges ----------------------------------------------------------------
+  flow/.style={->, thick, draw=dlfg},              % forward pass
+  grad/.style={->, thick, dashed, draw=colorred},  % backward pass / gradient
+  skip/.style={->, thick, draw=dlfaint, rounded corners=6pt},
+  % --- tensors drawn as cells -----------------------------------------------
+  cell/.style={draw=#1, fill=#1!18!dlbg, thick, minimum size=5mm,
+    inner sep=0, outer sep=0, font=\scriptsize},
+  cell/.default=dlfg,
+  % --- annotation (Tufte-style, quiet) --------------------------------------
+  annot/.style={font=\footnotesize\itshape, text=dlmuted, align=left},
+  leader/.style={draw=dlmuted, thin, shorten >=2pt},
+  knockout/.style={fill=dlbg, inner sep=1.5pt},   % text masks lines behind it
+  dim/.style={font=\scriptsize, text=dlmuted},     % tensor-shape labels
+  brace/.style={decorate, decoration={brace, amplitude=4pt, raise=2pt},
+    draw=dlmuted, thin},
+  hl/.style={draw=#1, very thick, rounded corners=1pt}, hl/.default=colorred,
+}
+
+%% ---------------------------------------------------------------- helpers --
+% \dlvec{(anchor)}{name}{n}{colour}{vertical?: v|h}
+%   draws a vector of n cells, cells named name-1 ... name-n
+\newcommand{\dlvec}[5]{%
+  \foreach \i in {1,...,#3}{%
+    \ifstrequal{#5}{h}%
+      {\node[cell=#4] (#2-\i) at ($#1+(\i*5mm-5mm,0)$) {};}%
+      {\node[cell=#4] (#2-\i) at ($#1-(0,\i*5mm-5mm)$) {};}%
+  }%
+}
+
+% \dlcuboid{(front-bottom-left)}{w}{h}{depth}{colour}{label}
+%   a feature-map / tensor block in oblique projection (depth goes up-right)
+\newcommand{\dlcuboid}[6]{%
+  \begin{scope}[shift={#1}]
+    \pgfmathsetmacro\dlD{#4*0.5}
+    \filldraw[draw=#5, fill=#5!20!dlbg, thick]
+      (0,0) -- (#2,0) -- (#2,#3) -- (0,#3) -- cycle;
+    \filldraw[draw=#5, fill=#5!35!dlbg, thick]
+      (0,#3) -- ++(\dlD,\dlD) -- ++(#2,0) -- (#2,#3) -- cycle;
+    \filldraw[draw=#5, fill=#5!10!dlbg, thick]
+      (#2,0) -- ++(\dlD,\dlD) -- ++(0,#3) -- (#2,#3) -- cycle;
+    \node[dim, below] at (#2/2,0) {#6};
+  \end{scope}%
+}
+
+%% --------------------------------------------------------- pgfplots looks --
+\pgfplotsset{
+  every axis/.append style={
+    axis line style={dlfg}, tick style={dlfg}, every tick label/.append
+    style={font=\scriptsize, text=dlfg}, label style={text=dlfg},
+    legend style={fill=dlbg, draw=none, text=dlfg, font=\footnotesize},
+    title style={text=dlfg}},
+  % centred "school" axes with a light grid (book Appendix A.3)
+  school axis/.style={axis lines=center, axis line style={->},
+    grid=major, grid style={dlgrid, thin}, axis equal},
+  % minimal box-less axes for data (Tufte): only left/bottom spines
+  dl axis/.style={axis lines=left, axis line style={-}, grid=major,
+    grid style={dlgrid, very thin}, tick align=outside},
+  curve/.style={line width=1.2pt, mark=none, smooth},
+  every axis plot/.append style={line width=1.2pt},
+  colormap={dlheat}{color=(dlbg) color=(colorblue) color=(coloraqua)
+    color=(coloryellow)},
+}
+
+\endinput

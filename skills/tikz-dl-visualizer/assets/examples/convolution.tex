@@ -1,0 +1,43 @@
+% Caption: A 3x3 kernel slides over a 5x5 input (stride 1, no padding). Each
+% output value is the dot product of the kernel with the patch under it, so the
+% output is 3x3. The highlighted patch produces the highlighted output.
+% Archetype: grid with a receptive-field projection
+% Numbers were computed in Python and pasted in; never do arithmetic by hand.
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[dark]{dlviz}
+\begin{document}
+\begin{tikzpicture}[x=7mm, y=7mm]
+  \def\X{{1,1,1,0,0},{0,1,1,1,0},{0,0,1,1,1},{0,0,1,1,0},{0,1,1,0,0}}
+  \def\K{{1,0,1},{0,1,0},{1,0,1}}
+  \def\Y{{4,3,4},{2,4,3},{2,3,4}}
+  \def\oi{2} \def\oj{2}   % output cell we explain (row, col), 1-based
+
+  % input x (5x5), top-left at (0,0)
+  \foreach \row [count=\i] in \X \foreach \v [count=\j] in \row
+    \node[cell=colorpink, minimum size=7mm] (x-\i-\j) at (\j-.5,-\i+.5) {\v};
+  \node[dim, below=1mm of x-5-3] {input \(\pink{\vx}\in\R^{5\times5}\)};
+
+  % kernel w (3x3)
+  \foreach \row [count=\i] in \K \foreach \v [count=\j] in \row
+    \node[cell=colorgold, minimum size=7mm] (k-\i-\j) at (6.5+\j,-\i-.5) {\v};
+  \node[dim, below=1mm of k-3-2] {kernel \(\gold{\mW}\in\R^{3\times3}\)};
+  \node at (6.6,-2) {\(\ast\)};
+
+  % output h (3x3)
+  \foreach \row [count=\i] in \Y \foreach \v [count=\j] in \row
+    \node[cell=colorgreen, minimum size=7mm] (y-\i-\j) at (11.5+\j,-\i-.5) {\v};
+  \node[dim, below=1mm of y-3-2] {output \(\green{\vh}\in\R^{3\times3}\)};
+  \node at (11.6,-2) {\(=\)};
+
+  % receptive field of output (oi,oj) = input rows oi..oi+2, cols oj..oj+2
+  \pgfmathtruncatemacro\ei{\oi+2} \pgfmathtruncatemacro\ej{\oj+2}
+  \draw[hl=colorred] (x-\oi-\oj.north west) rectangle (x-\ei-\ej.south east);
+  \draw[hl=colorred] (y-\oi-\oj.north west) rectangle (y-\oi-\oj.south east);
+
+  % the arithmetic for that one cell
+  \node[annot, anchor=north west] at ($(x-5-1.south west)+(0,-1.3)$) {%
+    \(\red{h_{22}} = \sum_{u,v} \gold{w_{uv}}\,\pink{x_{1+u,\,1+v}}
+      = 1{+}0{+}1 + 0{+}1{+}0 + 0{+}0{+}1 = \red{4}\)%
+    \quad output size \(= 5 - 3 + 1 = 3\)};
+\end{tikzpicture}
+\end{document}

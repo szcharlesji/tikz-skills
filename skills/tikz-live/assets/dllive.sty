@@ -1,0 +1,109 @@
+% dllive.sty -- export what a JS overlay needs from a TikZ figure.
+% Load after dlviz (or plain tikz). One tikzpicture per file.
+%
+%   export            node key: export this node's box (sw, ne, c) to JSON
+%   live=<id>         node key: the node's text is "live". In the scaffold job it is
+%                     invisible but still laid out; in the glyph job it is typeset
+%                     in a unique ID colour so build.py can cut its glyphs out.
+%   \dlnum            canonical number sample for live numbers (put it in a live
+%                     node in maths mode: {\(\dlnum\)})
+%   \dlnumin{w}       the sample in a box of width w (for \matrix cells, tables)
+%   \dlexport{name}{(x,y)}   export a bare point
+%
+% build.py compiles the file twice: normally ("scaffold") and with
+% \def\dlliveglyphs{} ("glyphs"). Both write <job>.live.json (one JSON
+% object per line): the frame, exported nodes and live slots.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{dllive}[2026/10/22 TikZ to JS overlay exports]
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+
+\newif\ifdllive@glyphs
+\ifdefined\dlliveglyphs \dllive@glyphstrue \fi
+
+\newwrite\dllive@out
+\AtBeginDocument{\immediate\openout\dllive@out=\jobname.live.json}
+\AtEndDocument{\immediate\closeout\dllive@out}
+\newcommand\dllive@w[1]{\immediate\write\dllive@out{#1}}
+\newcommand\dllive@pt[1]{\strip@pt\dimexpr#1\relax}
+% \dllive@xy{<pgf point>} -> "[x,y]" in canvas pt (transformations reset)
+\newcommand\dllive@xy[1]{%
+  {\pgftransformreset #1\pgfgetlastxy\dllive@x\dllive@y
+   \xdef\dllive@xyout{[\dllive@pt\dllive@x,\dllive@pt\dllive@y]}}}
+
+% the canonical live-number sample; dllive.js knows its glyph layout:
+%   - 0 . 0 1 2 3 4 5 6 7 8 9  x 1 0 ^{- 0 1 2 3 4 5 6 7 8 9}
+\newcommand\dlnum{-0.0123456789\times10^{-0123456789}}
+% \dlnumin{<width>}: the same sample in a box of fixed width (it overflows to the
+% right, invisibly), so a live number in a \matrix or table reserves only <width>.
+\newcommand\dlnumin[1]{\makebox[#1][l]{\(\dlnum\)}}
+
+% ---- exported nodes --------------------------------------------------------
+\newcommand\dllive@node[2]{% #1 node name, #2 key written to JSON
+  \dllive@xy{\pgfpointanchor{#1}{south west}}\let\dllive@sw\dllive@xyout
+  \dllive@xy{\pgfpointanchor{#1}{north east}}\let\dllive@ne\dllive@xyout
+  \dllive@xy{\pgfpointanchor{#1}{center}}\let\dllive@c\dllive@xyout
+  \dllive@w{{"node":"#2","sw":\dllive@sw,"ne":\dllive@ne,"c":\dllive@c}}}
+\newcommand\dlexport[2]{%
+  \path #2 coordinate (dllive@pt@#1);%
+  \dllive@xy{\pgfpointanchor{dllive@pt@#1}{center}}%
+  \dllive@w{{"node":"#1","sw":\dllive@xyout,"ne":\dllive@xyout,"c":\dllive@xyout}}}
+
+% ---- live slots ------------------------------------------------------------
+\newcount\dllive@n
+% ID colour for slot n: RGB (4n+4, 3, 251); build.py decodes R/4-1
+% Runs at "execute at begin node". On TikZ's main node path that is BEFORE the
+% text colour is applied, so read the colour from \tikz@textcolor and replace it.
+% \dllive@record{id}: write the slot's id, number and text colour (both jobs)
+\newcommand\dllive@record[1]{%
+  \ifx\tikz@textcolor\pgfutil@empty \extractcolorspec{.}\dllive@spec
+  \else \extractcolorspec{\tikz@textcolor}\dllive@spec \fi
+  \expandafter\convertcolorspec\dllive@spec{HTML}\dllive@hex
+  \global\advance\dllive@n by 1
+  \dllive@w{{"live":"#1","n":\the\dllive@n,"color":"\dllive@hex"}}}
+\newcommand\dllive@begin[1]{%
+  \dllive@record{#1}%
+  \edef\dllive@rgb{\the\numexpr4*\dllive@n+4\relax,3,251}%
+  \definecolor{dllive@id}{RGB}{\dllive@rgb}%
+  \def\tikz@textcolor{dllive@id}\color{dllive@id}}
+
+% Node boxes are written at the END of the picture, so nodes that are moved
+% after creation (cells of a \matrix, for example) report their final place.
+\gdef\dllive@queue{}
+\newcommand\dllive@enqueue[2]{\xdef\dllive@queue{\unexpanded\expandafter{\dllive@queue}\noexpand\dllive@node{#1}{#2}}}
+% \tikzlastnode names the node, except in a cell of a \matrix (|[export]| ...),
+% where it is undefined: the cell is then <matrix name>-<row>-<column>.
+\newcommand\dllive@lastname{%
+  \ifx\tikzlastnode\@undefined
+    \xdef\dllive@name{\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn}%
+  \else \xdef\dllive@name{\tikzlastnode}\fi}
+\tikzset{
+  export/.style={append after command={\pgfextra{%
+    \dllive@lastname\dllive@enqueue{\dllive@name}{\dllive@name}}}},
+  live/.code={%
+    \ifdllive@glyphs
+      \tikzset{execute at begin node={\dllive@begin{#1}}}%
+    \else
+      \tikzset{text opacity=0, execute at begin node={\dllive@record{#1}}}%
+    \fi
+    \tikzset{append after command={\pgfextra{\dllive@lastname\dllive@enqueue{\dllive@name}{live:#1}}}}},
+  every picture/.append style={execute at end picture={\dllive@frame}},
+}
+
+% ---- frame: bounding box + the picture's coordinate system, in canvas pt -----
+\newif\ifdllive@framed
+\newcommand\dllive@frame{%
+  \ifdllive@framed\else \global\dllive@framedtrue
+    \dllive@queue
+    \pgfpointtransformed{\pgfpointorigin}\pgfgetlastxy\dllive@ox\dllive@oy
+    \pgfpointtransformed{\pgfpointxy{1}{0}}\pgfgetlastxy\dllive@xx\dllive@xy@
+    \pgfpointtransformed{\pgfpointxy{0}{1}}\pgfgetlastxy\dllive@yx\dllive@yy
+    \dllive@xy{\pgfpointanchor{current bounding box}{south west}}\let\dllive@bsw\dllive@xyout
+    \dllive@xy{\pgfpointanchor{current bounding box}{north east}}\let\dllive@bne\dllive@xyout
+    \dllive@w{{"frame":{"sw":\dllive@bsw,"ne":\dllive@bne,%
+      "origin":[\dllive@pt\dllive@ox,\dllive@pt\dllive@oy],%
+      "x":[\dllive@pt{\dllive@xx-\dllive@ox},\dllive@pt{\dllive@xy@-\dllive@oy}],%
+      "y":[\dllive@pt{\dllive@yx-\dllive@ox},\dllive@pt{\dllive@yy-\dllive@oy}]}}}%
+  \fi}
+
+\endinput

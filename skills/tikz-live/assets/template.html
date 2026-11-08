@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"{{HTML_THEME}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  {{THEME_CSS}}
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--fg);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: {{MAXW}}px; margin: 0 auto; padding-block: 24px 36px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font-size: 1.2rem; font-weight: 600; margin: 0 0 .5rem; text-wrap: balance; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  figcaption { color: var(--muted); font-size: .86rem; padding: 0 16px 12px; max-width: 75ch; }
+  figcaption:empty { display: none; }
+
+  /* ---- live figure (same rules a host page such as the explorer book uses) ---- */
+  .dl-live .dl-svg { display: block; width: 100%; height: auto; touch-action: pan-y pinch-zoom;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .dl-live .dl-th-dark { display: var(--show-d); }
+  .dl-live .dl-th-light { display: var(--show-l); }
+  .dl-live .dl-handle { cursor: grab; outline: none; }
+  .dl-live .dl-handle .dl-hit { touch-action: none; }
+  .dl-live .dl-dragging, .dl-live .dl-dragging .dl-handle { cursor: grabbing; }
+  .dl-live .dl-handle:focus-visible circle:first-child { stroke-opacity: 1; stroke: var(--accent); }
+  .dl-live .dl-hot { cursor: pointer; outline: none; }
+  .dl-live .dl-hot:focus-visible { stroke: var(--accent); stroke-width: .6; stroke-opacity: .8; }
+  .dl-controls { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center;
+    padding: 10px 16px 12px; border-top: 1px solid var(--line); }
+  .dl-controls[hidden] { display: none; }
+  .dl-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 22px; flex: 1 1 320px; min-width: 0; }
+  .dl-ctl { display: grid; grid-template-columns: auto 1fr 3.4em; gap: 10px; align-items: center; min-width: 0; }
+  .dl-sym { font: italic 1.05rem/1 "Latin Modern Math", "STIX Two Math", "Cambria Math", Georgia, serif; min-width: 1em; text-align: center; }
+  .dl-ctl output { font: .82rem/1 ui-monospace, "SF Mono", Menlo, monospace; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .dl-ctl input[type=range] { width: 100%; min-width: 0; margin: 0; height: 26px; accent-color: var(--accent); }
+  .dl-buttons { display: flex; gap: 8px; }
+  .dl-buttons button { font: inherit; font-size: .84rem; color: var(--fg); background: transparent;
+    border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+  .dl-buttons button:hover { border-color: var(--muted); }
+  .dl-buttons button.dl-primary { color: var(--accent); }
+  .dl-buttons button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 560px) { .dl-ctl { grid-template-columns: auto 1fr 3em; } .dl-buttons { width: 100%; } .dl-buttons button { flex: 1; } }
+</style>
+</head>
+<body>
+<main>
+  {{HEADER}}
+  <figure>
+    {{FIGURE}}
+    <figcaption>{{CAPTION}}</figcaption>
+  </figure>
+</main>
+<script>
+{{RUNTIME}}
+</script>
+<script>
+{{SPEC}}
+</script>
+</body>
+</html>

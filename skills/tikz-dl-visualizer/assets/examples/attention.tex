@@ -1,0 +1,72 @@
+% Caption: Scaled dot-product attention for a 4-token sequence. Each query row
+% scores every key, softmax turns each row into weights that sum to 1, and the
+% output row is that weighted average of the value rows. "sat" attends mostly
+% to "cat".
+% Archetype: matrix / heatmap (matrix product laid out so shapes line up)
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[dark]{dlviz}
+\begin{document}
+\begin{tikzpicture}[x=6mm, y=6mm]
+  \def\tokens{the,cat,sat,.}
+  % attention weights A = softmax(QK^T / sqrt(d_k)); every row sums to 1
+  \def\weights{{.55,.15,.15,.15},{.10,.60,.20,.10},{.05,.50,.30,.15},{.25,.25,.25,.25}}
+  \def\hlrow{3}  % the query row we follow through the figure
+
+  % ---- A (4x4) at the origin, top-left corner at (0,0) --------------------
+  \foreach \row [count=\i] in \weights {
+    \foreach \w [count=\j] in \row {
+      \pgfmathsetmacro\pct{int(100*\w)}
+      \node[cell=coloraqua, minimum size=6mm, fill=coloraqua!\pct!dlbg,
+            text=\ifnum\pct>40 dlbg\else dlfg\fi]
+        (A-\i-\j) at (\j-.5, -\i+.5) {\w};
+    }
+  }
+  \node[dim, below=1mm of A-4-2.south east] {\(\mA \in \R^{n\times n}\)};
+
+  % ---- Q (4x3) to the left of A, tokens on its left -----------------------
+  \foreach \t [count=\i] in \tokens {
+    \foreach \j in {1,2,3}
+      \node[cell=colorblue, minimum size=6mm] (Q-\i-\j) at (-5.5+\j, -\i+.5) {};
+    \node[left=1mm of Q-\i-1, font=\small] {\t};
+  }
+  \node[dim, below=1mm of Q-4-2] {\(\blue{\mQ} \in \R^{n\times d_k}\)};
+
+  % ---- K^T (3x4) above A ---------------------------------------------------
+  \foreach \t [count=\j] in \tokens {
+    \foreach \i in {1,2,3}
+      \node[cell=colororange, minimum size=6mm] (K-\i-\j) at (\j-.5, 4.5-\i) {};
+    \node[above=1mm of K-1-\j, font=\small] {\t};
+  }
+  \node[dim, left=1mm of K-2-1] {\(\orange{\mK}^{\top}\)};
+
+  % ---- V (4x3) above the output, O (4x3) right of A ------------------------
+  \foreach \i in {1,...,4} \foreach \j in {1,2,3} {
+    \node[cell=colorgreen,  minimum size=6mm] (O-\i-\j) at (6.5+\j, -\i+.5) {};
+  }
+  \foreach \i in {1,...,4} \foreach \j in {1,2,3}
+    \node[cell=colorgreen, minimum size=6mm, fill=colorgreen!40!dlbg]
+      (V-\i-\j) at (6.5+\j, 6.5-\i) {};
+  \foreach \t [count=\i] in \tokens \node[right=1mm of V-\i-3, font=\small] {\t};
+  \node[dim, above=1mm of V-1-2] {\(\green{\mV}\)};
+  \node[dim, below=1mm of O-4-2] {\(\mA\green{\mV} \in \R^{n\times d_v}\)};
+
+  % ---- follow one query: highlight its row everywhere -----------------------
+  \draw[hl=colorred] (Q-\hlrow-1.north west) rectangle (Q-\hlrow-3.south east);
+  \draw[hl=colorred] (A-\hlrow-1.north west) rectangle (A-\hlrow-4.south east);
+  \draw[hl=colorred] (O-\hlrow-1.north west) rectangle (O-\hlrow-3.south east);
+
+  % ---- annotations ----------------------------------------------------------
+  \draw[brace] (A-1-4.north east) -- (A-4-4.south east)
+    node[midway, right=5pt, annot] {each row\\sums to 1};
+  \node[annot, below=7mm of A-4-2] (n1) {``sat'' looks mostly at ``cat''};
+  \draw[leader] (n1.north) -- (A-3-2.south);
+  \node[annot, below=7mm of O-4-2] (n2) {weighted average\\of the rows of \(\green{\mV}\)};
+  \draw[leader] (n2.north) -- (O-4-2.south);
+
+  % ---- colour-coded equation ------------------------------------------------
+  \node[anchor=north] at ($(A-4-2.south)+(0,-2.6)$) {%
+    \(\mathrm{Attn}(\blue{\mQ},\orange{\mK},\green{\mV}) =
+      \underbrace{\softmax\!\Bigl(\tfrac{\blue{\mQ}\orange{\mK}^{\top}}{\sqrt{d_k}}\Bigr)}_{\aqua{\mA}}\,
+      \green{\mV}\)};
+\end{tikzpicture}
+\end{document}

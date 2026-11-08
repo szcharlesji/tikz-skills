@@ -1,0 +1,19 @@
+{
+  "title": "Book Title",
+  "sub": "Source · Term",
+  "colophon": "Figures drawn in TikZ with the dlviz colour language (one colour per role). Every number in a figure was computed, not drawn by hand. Companion to <a href=\"https://example.org\">the source</a>. Not an official document.",
+  "map": {"enabled": true, "heading": "The big picture", "toc": "The big picture (map)"},
+  "roles": [
+    {"macro": "cin", "label": "input \\(\\cin{x}\\)", "dark": "#FCCDE5", "light": "#D45D99", "dlviz": "colorpink"},
+    {"macro": "chid", "label": "hidden state \\(\\chid{h}\\)", "dark": "#B3DE69", "light": "#5E9A1E", "dlviz": "colorgreen"},
+    {"macro": "cpred", "label": "prediction \\(\\cpred{\\tilde y}\\)", "dark": "#BC80BD", "light": "#944A95", "dlviz": "colorviolet"},
+    {"macro": "ctgt", "label": "target \\(\\ctgt{y}\\)", "dark": "#80B1D3", "light": "#3A7DB5", "dlviz": "colorblue"},
+    {"macro": "clat", "label": "latent \\(\\clat{z}\\)", "dark": "#FDB462", "light": "#E8862A", "dlviz": "colororange"},
+    {"macro": "ccost", "label": "cost, loss \\(\\ccost{\\mathcal L}\\); the highlight", "dark": "#FB8072", "light": "#E0533F", "dlviz": "colorred"},
+    {"macro": "cpar", "label": "parameters \\(\\cpar{\\theta}\\)", "dark": "#FFED6F", "light": "#B58900", "dlviz": "colorgold"}
+  ],
+  "parts": [
+    {"id": "source", "kicker": "Part I", "title": "Following the source", "blurb": "One idea per unit, taken deep.", "chapters": ["w01", "w02"]},
+    {"id": "toolkit", "kicker": "Part II", "title": "Toolkit", "blurb": "What the reader's goal requires them to know cold.", "chapters": ["v01"]}
+  ]
+}

@@ -1,0 +1,46 @@
+% Caption: Three activations and their derivatives (dashed). Where the
+% derivative is near zero (shaded) the unit passes back almost no gradient:
+% sigmoid and tanh saturate on both sides, ReLU only for s < 0.
+% Archetype: small multiples of function plots (pgfplots groupplot)
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[dark]{dlviz}
+\begin{document}
+\begin{tikzpicture}
+  \begin{groupplot}[
+      group style={group size=3 by 1, horizontal sep=12mm},
+      axis lines=middle, axis line style={->}, grid=major,
+      grid style={dlgrid, thin},
+      width=5.4cm, height=4.4cm,
+      xmin=-4.5, xmax=4.5, ymin=-1.3, ymax=1.5,
+      xtick={-4,-2,2,4}, ytick={-1,1}, enlargelimits=false,
+      xlabel={\(\green{s}\)}, xlabel style={anchor=west},
+      domain=-4.5:4.5, samples=121,
+      title style={yshift=1mm},
+    ]
+    % sigmoid: saturated where sigma' < 0.05, |s| > 2.9
+    \nextgroupplot[title={\(\sigma(\green{s}) = 1/(1+e^{-\green{s}})\)}]
+      \fill[colorred, opacity=.15] (axis cs:-4.5,-1.3) rectangle (axis cs:-2.9,1.5);
+      \fill[colorred, opacity=.15] (axis cs:2.9,-1.3) rectangle (axis cs:4.5,1.5);
+      \addplot[curve, coloraqua] {1/(1+exp(-x))};
+      \addplot[coloraqua, dashed, thick, smooth] {exp(-x)/(1+exp(-x))^2};
+      \node[annot, knockout, anchor=west] at (axis cs:0.4,-0.7) {\(\sigma' \le \tfrac14\)};
+    % tanh: tanh' < 0.05 for |s| > 2.2
+    \nextgroupplot[title={\(\tanh(\green{s})\)}]
+      \fill[colorred, opacity=.15] (axis cs:-4.5,-1.3) rectangle (axis cs:-2.2,1.5);
+      \fill[colorred, opacity=.15] (axis cs:2.2,-1.3) rectangle (axis cs:4.5,1.5);
+      \addplot[curve, coloraqua] {tanh(x)};
+      \addplot[coloraqua, dashed, thick, smooth] {1-tanh(x)^2};
+    % ReLU: piecewise, so give the corners explicitly instead of sampling
+    \nextgroupplot[title={\((\green{s})^+ = \max(0,\green{s})\)}]
+      \fill[colorred, opacity=.15] (axis cs:-4.5,-1.3) rectangle (axis cs:0,1.5);
+      \addplot[coloraqua, line width=1.2pt] coordinates {(-4.5,0) (0,0) (1.5,1.5)};
+      \addplot[coloraqua, dashed, thick] coordinates {(-4.5,0) (0,0)};
+      \addplot[coloraqua, dashed, thick] coordinates {(0,1) (4.5,1)};
+      \node[annot, knockout, text=colorred, align=center] at (axis cs:-2.25,0.6)
+        {dead side:\\no gradient};
+  \end{groupplot}
+  \node[annot, anchor=north] at ($(group c2r1.south)+(0,-6mm)$)
+    {solid: activation \(\aqua{a}\);\quad dashed: derivative
+     \(\partial\aqua{a}/\partial\green{s}\);\quad \red{shaded}: gradient \(\approx 0\)};
+\end{tikzpicture}
+\end{document}

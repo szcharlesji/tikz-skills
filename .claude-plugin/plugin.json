@@ -1,0 +1,10 @@
+{
+  "name": "tikz-skills",
+  "version": "1.0.0",
+  "description": "Explain deep-learning ideas with TikZ: static figures for slides and papers, interactive figures for the web, and whole illustrated explorer books, all in one visual language.",
+  "author": { "name": "Charles Ji" },
+  "homepage": "https://github.com/szcharlesji/tikz-skills",
+  "repository": "https://github.com/szcharlesji/tikz-skills",
+  "license": "MIT",
+  "keywords": ["tikz", "latex", "pgfplots", "deep-learning", "visualization", "diagrams", "interactive", "education"]
+}

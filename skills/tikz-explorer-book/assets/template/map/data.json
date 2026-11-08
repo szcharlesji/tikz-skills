@@ -1,0 +1,21 @@
+{
+  "families": [
+    {"id": "a", "label": "Family A", "blurb": "One line on what unites this branch."},
+    {"id": "b", "label": "Family B", "blurb": "One line on what unites this branch."}
+  ],
+  "nodes": [
+    {"id": "core", "type": "hub", "fam": null, "label": "The one problem", "blurb": "The question every node on the map answers in its own way.", "deeper": []},
+    {"id": "c1", "type": "concept", "fam": "a", "label": "Concept one", "blurb": "What it is and where it sits, in two sentences.", "deeper": ["w01"]},
+    {"id": "c2", "type": "concept", "fam": "b", "label": "Concept two", "blurb": "What it is and where it sits, in two sentences.", "deeper": ["v01"]},
+    {"id": "p1", "type": "paper", "fam": "a", "label": "Landmark work", "who": "Author et al.", "year": 2020, "url": "https://arxiv.org/abs/0000.00000", "blurb": "What it showed, in one line."}
+  ],
+  "links": [
+    ["c1", "core", "answers it by …"],
+    ["c2", "core", "answers it by …"],
+    ["c1", "c2", "is a special case of"],
+    ["p1", "c1", "introduces"]
+  ],
+  "tour": [
+    {"title": "Step title", "text": "One paragraph that connects the highlighted nodes.", "nodes": ["core", "c1", "c2"]}
+  ]
+}

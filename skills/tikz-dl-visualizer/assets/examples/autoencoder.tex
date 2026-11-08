@@ -1,0 +1,40 @@
+% Caption: An autoencoder is trained so that the cost between the input and its
+% reconstruction is low on the data. The bottleneck h forces the network to keep
+% only what it needs to rebuild x.
+% Archetype: pipeline (book vocabulary: neurons, bullets, cost, energy box)
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[dark]{dlviz}
+\begin{document}
+\begin{tikzpicture}[node distance=7.5mm]
+  % nodes, left to right
+  \node (vx)   [vx];
+  \node (Enc)  [Enc,   right=of vx];
+  \node (vh)   [vh,    right=of Enc];
+  \node (Dec)  [Dec,   right=of vh];
+  \node (xhat) [neuron, draw=colorviolet, right=of Dec] {\(\vxhat\)};
+  \node (cC)   [cC,    right=of xhat];
+
+  % edges
+  \graph[use existing nodes]{ vx -> Enc -> vh -> Dec -> xhat -> cC };
+  \draw[->] (vx.north) -- ++(0,6mm) -| (cC.north);
+
+  % the energy box wraps everything that defines F(x)
+  \node[fit=(vx)(cC), inner xsep=4mm, inner ysep=4mm,
+        yshift=2mm, minimum height=27mm, draw, system energy] (F) {};
+  \node[above left, text=colorred] at (F.north east) {\(\cF(\vx)\)};
+
+  % shapes under each variable
+  \node[dim, below=1mm of vx]        {\(\R^{784}\)};
+  \node[dim, below=1mm of vh] (dimh) {\(\R^{32}\)};
+  \node[dim, below=1mm of xhat]      {\(\R^{784}\)};
+
+  % one quiet annotation on the key idea
+  \node[annot, below=9mm of dimh] (note) {bottleneck: \(32 \ll 784\),\\ so \(\vh\) must compress};
+  \draw[leader] (note.north) -- (dimh.south);
+
+  % colour-coded equation
+  \node[anchor=north, yshift=-4mm] at (F.center |- note.south) {%
+    \(\cF(\pink{\vx}) = \bigl\lVert \pink{\vx} -
+      \aqua{\mathrm{Dec}}\bigl(\lavender{\mathrm{Enc}}(\pink{\vx})\bigr)\bigr\rVert^2\)};
+\end{tikzpicture}
+\end{document}

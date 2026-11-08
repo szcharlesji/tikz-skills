@@ -1,0 +1,9 @@
+.DS_Store
+.dllive/
+__pycache__/
+*.aux
+*.log
+
+# development-only test cases stay local
+skills/*/evals/
+*-workspace/

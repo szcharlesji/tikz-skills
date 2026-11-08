@@ -1,0 +1,42 @@
+% Caption: Heavy-ball momentum on an ill-conditioned quadratic. Drag the start
+% point, change beta and eta: the oscillating w2 component cancels while the
+% steady w1 component accumulates; too much beta overshoots.
+% Scaffold only: contours, axes, w*, readout labels, equation. The paths, the
+% numbers and the w0 label are drawn live by momentum.js.
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[dark]{dlviz}
+\usepackage{dllive}
+\begin{document}
+\begin{tikzpicture}[x=1.15cm, y=1.15cm]
+  \useasboundingbox (-5.6,-3.05) rectangle (5.75,2.35);
+  \foreach \c in {0.5,2,4.5,8,12.5} {
+    \pgfmathsetmacro\rx{sqrt(2*\c)} \pgfmathsetmacro\ry{sqrt(2*\c/10)}
+    \draw[dlfaint, thin] (0,0) ellipse ({\rx} and {\ry});
+  }
+  \draw[->, dlgrid] (-5.3,0) -- (5.3,0) node[right, text=dlmuted] {\(w_1\)};
+  \draw[->, dlgrid] (0,-1.9) -- (0,1.9) node[above, text=dlmuted] {\(w_2\)};
+  \fill[colorred] (0,0) circle (1.6pt) node[below right=-1pt, font=\scriptsize,
+    text=colorred] {\(\vw^\star\)};
+
+  % readout, top right: static text typeset here, numbers are live slots
+  \node[anchor=base west, inner sep=0, font=\small, text=coloraqua] (b) at (2.55,2.05) {\(\beta = {}\)};
+  \node[live=beta, anchor=base west, inner sep=0, font=\small, text=coloraqua] at (b.base east) {\(\dlnum\)};
+  \node[anchor=base west, inner sep=0, font=\small, text=dlmuted] (e) at (4.05,2.05) {\(\eta = {}\)};
+  \node[live=eta, anchor=base west, inner sep=0, font=\small, text=dlmuted] at (e.base east) {\(\dlnum\)};
+  \draw[coloraqua, thick] (2.55,1.84) -- ++(0.26,0);
+  \fill[coloraqua] (2.68,1.84) circle (1.1pt);
+  \node[anchor=base west, inner sep=0, font=\scriptsize, text=dlmuted] (l1) at (2.92,1.77) {\(\cL(\vw_{30}) = {}\)};
+  \node[live=Lmom, anchor=base west, inner sep=0, font=\scriptsize] at (l1.base east) {\(\dlnum\)};
+  \draw[colororange!55!dlbg, thick] (2.55,1.60) -- ++(0.26,0);
+  \node[anchor=base west, inner sep=0, font=\scriptsize, text=dlmuted] (l2) at (2.92,1.53) {\(\cL(\vw_{30}) = {}\)};
+  \node[live=Lgd, anchor=base west, inner sep=0, font=\scriptsize, text=colororange] at (l2.base east) {\(\dlnum\)};
+
+  % the start-point label moves with the handle
+  \node[live=w0lab, above left=-1pt, dim] at (-4,1.5) {\(\vw_0\)};
+
+  \node[anchor=north] at (0,-2.2) {%
+    \(\aqua{\vv_{t+1} = \beta\vv_t + \nabla\cL(\vw_t),\quad
+      \vw_{t+1} = \vw_t - \eta\vv_{t+1}}\)\qquad
+    \(\cL(\vw)=\tfrac12(w_1^2+10\,w_2^2)\)};
+\end{tikzpicture}
+\end{document}
